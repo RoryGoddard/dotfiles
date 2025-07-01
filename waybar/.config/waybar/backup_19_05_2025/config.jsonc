@@ -1,0 +1,163 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 32,
+  "spacing": 0,
+  "modules-left": [
+    "hyprland/workspaces",
+    "tray"
+  ],
+  "modules-center": ["hyprland/window"],
+  "modules-right": [
+    "network",
+    "battery",
+    "bluetooth",
+    "pulseaudio",
+    "backlight",
+    "custom/temperature",
+    "memory",
+    "cpu",
+    "clock",
+    "custom/lock",
+    "custom/reboot",
+    "custom/power" 
+  ],
+ 
+  "hyprland/workspaces": {
+	"format": "{name}: {icon}",
+	"format-icons": {
+		"1": "",
+		"2": "",
+		"3": "",
+		"4": "",
+		"5": "",
+		"6": "",
+		"active": "",
+		"default": ""
+	},
+	"exclude-urgent": true,  // Optional: Exclude urgent workspaces
+	"persistent": false      // Disable persistent workspaces if your setup supports this option
+  },
+
+  "custom/lock": {
+  "format": "<span color='#00FFFF'>  </span>",
+  "on-click": "hyprlock",
+  "tooltip": true,
+  "tooltip-format": "Lock"
+  },
+  "custom/reboot": {
+    "format": "<span color='#FFD700'>  </span>",
+    "on-click": "systemctl reboot",
+    "tooltip": true,
+    "tooltip-format": "Reboot"
+  },
+  "custom/power": {
+    "format": "<span color='#FF4040'>  </span>",
+    "on-click": "systemctl poweroff",
+    "tooltip": true,
+    "tooltip-format": "Shutdown"
+  },
+  "network": {
+    "format-wifi": "<span  color='#00FFFF'>{icon}</span>",
+    "format-ethernet": "<span  color='#7FFF00'> </span>Wired ",
+    "tooltip-format": "<span  color='#FF1493'> 󰅧  </span>{bandwidthUpBytes} <span color='#00BFFF'> 󰅢  </span>{bandwidthDownBytes}",
+    "format-linked": "<span  color='#FFA500'>󱘖</span>{ifname} (No IP) ",
+    "format-disconnected": "<span  color='#FF4040'></span>",
+    "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+    "interval": 1,
+    "on-click": "control -w"
+  }
+  ,
+
+"battery": {
+  "states": {
+    "warning": 30,
+    "critical": 15
+  },
+  "format-charging": "<span  color='#28CD41'>󱐋{icon}</span>",
+  "format-plugged": "<span  color='#28CD41'>󱐋{icon}</span>",
+  "format-full": "<span  color='#28CD41'>󱐋{icon}</span>",
+  "format": "<span  color='#28CD41'>{icon}</span>",
+  "interval": 1,
+  "format-icons": ["󰂎", "󰁼", "󰁿", "󰂁", "󰁹"],  
+
+  "tooltip": true,
+  "on-click": "control -B"
+},
+
+  "pulseaudio": {
+    "format": "<span color='#00FF7F'>{icon}    </span>{volume}%",
+    "format-muted": "<span  color='#FF4040'>󰖁</span>0% ",
+    "format-icons": {
+      "headphone": "<span  color='#BF00FF'></span>",
+      "hands-free": "<span  color='#BF00FF'></span>",
+      "headset": "<span  color='#BF00FF'></span>",
+      "phone": "<span  color='#00FFFF'></span>",
+      "portable": "<span  color='#00FFFF'></span>",
+      "car": "<span  color='#FFA500'></span>",
+      "default": [
+        "<span color='#808080'></span>",
+        "<span color='#FFFF66'></span>",
+        "<span color='#00FF7F'></span>"
+      ]
+    },
+    "on-click-right": "pavucontrol -t 3",
+    "on-click": "control -V",
+    "tooltip": true,
+    "tooltip-format": "Volume: {volume}%"
+  },
+  "custom/temperature": {
+    "exec": "sensors | awk '/^Package id 0:/ {print int($4)}'",
+    "format": "<span  color='#FFA500'> </span>{}°C",
+    "interval": 5,
+    "tooltip": true,
+    "tooltip-format": "CPU Temperature: {}°C"
+  },
+  "memory": {
+    "format": "<span  color='#8A2BE2'>    </span>{used:0.1f}G/{total:0.1f}G",
+    "tooltip": true,
+    "tooltip-format": "RAM: {used:0.2f}G/{total:0.2f}G"
+  },
+  "cpu": {
+    "format": "<span  color='#FF9F0A'> </span>{usage}%",
+    "tooltip": true
+  },
+  "clock": {
+    "interval": 1,
+    "timezone": "Africa/Johannesburg",
+    "format": "<span  color='#BF00FF'>   </span>{:%H:%M}",
+    "tooltip": true,
+    "tooltip-format": "{:%A, %d %B %Y}"
+
+  },
+  "tray": {
+    "icon-size": 17,
+    "spacing": 6,
+    "show-passive-items": true
+  },
+  "backlight": {
+    "device": "intel_backlight",
+    "format": "<span  color='#FFD700'>{icon}   </span>{percent}%",
+    "tooltip": true,
+    "tooltip-format": "Brightness: {percent}%",
+    "format-icons": [
+      "<span color='#696969'>󰃞</span>", 
+      "<span color='#A9A9A9'>󰃝</span>",
+      "<span color='#FFFF66'>󰃟</span>",
+      "<span color='#FFD700'>󰃠</span>"
+    ],
+    "on-click": "control -d"
+  },
+  "bluetooth": {
+  "format-on": "<span  color='#00BFFF' font='18px'>󰂯</span>",
+  "format-off": "<span  color='#00BFFF' font='18px'>󰂲</span>",
+  "format-disabled": "",
+  "format-connected": "<span  color='#00BFFF' font='18px'>󰂱</span>",
+  "format-connected-battery": "<span  color='#00BFFF' font='18px'>󰂱</span>",
+  "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
+  "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
+  "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
+  "tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_address}\t{device_battery_percentage}%",
+  "on-click": "control -b"
+}
+}
