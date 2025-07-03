@@ -260,45 +260,79 @@ require("lazy").setup({
 	},
 
 	-- Rory - I tried to add nvim-dap, the debug adapter protocol for C#
+
+	-- ~/.config/nvim/lua/plugins/init.lua
+	-- ...
+
 	{
+		-- Debug Framework
 		"mfussenegger/nvim-dap",
+		dependencies = {
+			"rcarriga/nvim-dap-ui",
+		},
 		config = function()
-			local dap = require("dap")
-
-			dap.adapters.coreclr = {
-				type = "executable",
-				command = "/usr/local/netcoredbg/netcoredbg",
-				args = { "--interpreter=vscode" },
-			}
-
-			dap.configurations.cs = {
-				{
-					type = "coreclr",
-					name = "Launch - Netcoredbg",
-					request = "launch",
-					program = function()
-						return vim.fn.input("Path to dll: ", vim.fn.getcwd() .. "/bin/Debug/net7.0/", "file")
-					end,
-				},
-			}
+			require("configs.nvim-dap")
 		end,
+		keys = {
+			vim.keymap.set("n", "<leader>dc", function()
+				require("dap").continue()
+			end, { desc = "DAP Continue" }),
+			vim.keymap.set("n", "<leader>db", function()
+				require("dap").toggle_breakpoint()
+			end, { desc = "DAP Toggle Breakpoint" }),
+			vim.keymap.set("n", "<leader>dn", function()
+				require("dap").step_over()
+			end, { desc = "DAP Step Over" }),
+			vim.keymap.set("n", "<leader>di", function()
+				require("dap").step_into()
+			end, { desc = "DAP Step Into" }),
+			vim.keymap.set("n", "<leader>do", function()
+				require("dap").step_out()
+			end, { desc = "DAP Step Out" }),
+			vim.keymap.set("n", "<leader>dr", function()
+				require("dap").repl.open()
+			end, { desc = "DAP REPL" }),
+			vim.keymap.set("n", "<leader>dl", function()
+				require("dap").run_last()
+			end, { desc = "DAP Run Last" }),
+		},
+		event = "VeryLazy",
 	},
 
-	-- Rory - I tried to add none-ls via chatgpt such that when a buffer opens it will be loaded and configure it to use csharpier as a formatter
 	{
-		"nvimtools/none-ls.nvim",
-		event = { "BufReadPre", "BufNewFile" },
-		dependencies = { "nvim-lua/plenary.nvim" },
+		-- UI for debugging
+		"rcarriga/nvim-dap-ui",
+		dependencies = {
+			"mfussenegger/nvim-dap",
+		},
 		config = function()
-			local null_ls = require("null-ls")
-
-			null_ls.setup({
-				sources = {
-					null_ls.builtins.formatting.csharpier,
-				},
-			})
+			require("configs.nvim-dap-ui")
 		end,
 	},
+	{
+		"nvim-neotest/neotest",
+		requires = {
+			{
+				"Issafalcon/neotest-dotnet",
+			},
+		},
+		dependencies = {
+			"nvim-neotest/nvim-nio",
+			"nvim-lua/plenary.nvim",
+			"antoinemadec/FixCursorHold.nvim",
+			"nvim-treesitter/nvim-treesitter",
+		},
+	},
+	{
+		"Issafalcon/neotest-dotnet",
+		lazy = false,
+		dependencies = {
+			"nvim-neotest/neotest",
+		},
+	},
+
+	-- ~/.config/nvim/lua/init.lua
+	-- ...
 
 	--
 	-- Use `opts = {}` to automatically pass options to a plugin's `setup()` function, forcing the plugin to be loaded.
