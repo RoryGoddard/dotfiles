@@ -154,3 +154,6 @@ bindkey -r '^S'
 
 
 export PATH="$HOME/.local/bin:$PATH"
+export PATH="$PATH:/opt/mssql-tools18/bin"
+export PATH="$PATH:$HOME/.dotnet/tools"
+
