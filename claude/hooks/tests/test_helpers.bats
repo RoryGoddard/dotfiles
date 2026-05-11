@@ -92,6 +92,7 @@ fake_proc() {
 }
 
 @test "fetch_pr_cached returns gh JSON and caches it" {
+    mkdir -p "$MOCK_DIR/somepath"
     mock_cmd gh 'echo "{\"number\":286,\"title\":\"Add OAuth\"}"'
     run fetch_pr_cached "$MOCK_DIR/somepath"
     [ "$status" -eq 0 ]
@@ -103,12 +104,14 @@ fake_proc() {
 }
 
 @test "fetch_pr_cached returns empty when gh fails on first call" {
+    mkdir -p "$MOCK_DIR/x"
     mock_cmd gh 'exit 1'
     run fetch_pr_cached "$MOCK_DIR/x"
     [ -z "$output" ]
 }
 
 @test "fetch_pr_cached refreshes after TTL expiry" {
+    mkdir -p "$MOCK_DIR/x"
     mock_cmd gh 'echo "{\"number\":1,\"title\":\"old\"}"'
     fetch_pr_cached "$MOCK_DIR/x" >/dev/null
     # Backdate the cache file

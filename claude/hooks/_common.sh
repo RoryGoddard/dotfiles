@@ -85,7 +85,7 @@ fetch_pr_cached() {
     fi
 
     local out
-    out=$(cd "$cwd" 2>/dev/null; gh pr view --json number,title 2>/dev/null) || out=""
+    out=$(cd "$cwd" 2>/dev/null && gh pr view --json number,title 2>/dev/null) || out=""
     if [[ -n "$out" ]]; then
         printf '%s' "$out" > "$cache"
         printf '%s\n' "$out"
