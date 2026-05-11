@@ -91,3 +91,30 @@ fetch_pr_cached() {
         printf '%s\n' "$out"
     fi
 }
+
+build_notification_title() {
+    local sess="$1" win="$2" wname="$3"
+    printf 'Claude • %s:%s %s\n' "$sess" "$win" "$wname"
+}
+
+build_notification_body() {
+    local repo="$1" branch="$2" pr_json="$3" message="$4"
+    local lines=()
+
+    if [[ -n "$repo" && -n "$branch" ]]; then
+        local line="$repo @ $branch"
+        if [[ -n "$pr_json" ]]; then
+            local n t
+            n=$(jq -r '.number // empty' <<<"$pr_json")
+            t=$(jq -r '.title // empty' <<<"$pr_json")
+            if [[ -n "$n" ]]; then
+                line="$line · PR #$n $t"
+            fi
+        fi
+        lines+=("$line")
+        lines+=("")
+    fi
+    lines+=("$message")
+
+    printf '%s\n' "${lines[@]}"
+}

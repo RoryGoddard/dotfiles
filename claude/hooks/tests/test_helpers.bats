@@ -119,3 +119,25 @@ fake_proc() {
     run fetch_pr_cached "$MOCK_DIR/x"
     [ "$output" = '{"number":2,"title":"new"}' ]
 }
+
+@test "build_notification_title formats session window window-name" {
+    run build_notification_title "work" "3" "backend"
+    [ "$output" = "Claude • work:3 backend" ]
+}
+
+@test "build_notification_body includes repo, branch, PR, message" {
+    run build_notification_body "myapp" "feature/auth" '{"number":286,"title":"Add OAuth"}' "Approve: rm -rf node_modules"
+    expected=$'myapp @ feature/auth · PR #286 Add OAuth\n\nApprove: rm -rf node_modules'
+    [ "$output" = "$expected" ]
+}
+
+@test "build_notification_body omits PR line when no PR" {
+    run build_notification_body "myapp" "feature/auth" '' "do thing"
+    expected=$'myapp @ feature/auth\n\ndo thing'
+    [ "$output" = "$expected" ]
+}
+
+@test "build_notification_body omits repo+branch line when not a repo" {
+    run build_notification_body '' '' '' "do thing"
+    [ "$output" = "do thing" ]
+}
