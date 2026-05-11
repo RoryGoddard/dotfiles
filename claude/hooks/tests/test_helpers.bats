@@ -90,3 +90,32 @@ fake_proc() {
     run resolve_repo_branch "$MOCK_DIR/notagit"
     [ -z "$output" ]
 }
+
+@test "fetch_pr_cached returns gh JSON and caches it" {
+    mock_cmd gh 'echo "{\"number\":286,\"title\":\"Add OAuth\"}"'
+    run fetch_pr_cached "$MOCK_DIR/somepath"
+    [ "$status" -eq 0 ]
+    [ "$output" = '{"number":286,"title":"Add OAuth"}' ]
+    # Second call: replace gh with one that fails — should still serve from cache
+    mock_cmd gh 'exit 1'
+    run fetch_pr_cached "$MOCK_DIR/somepath"
+    [ "$output" = '{"number":286,"title":"Add OAuth"}' ]
+}
+
+@test "fetch_pr_cached returns empty when gh fails on first call" {
+    mock_cmd gh 'exit 1'
+    run fetch_pr_cached "$MOCK_DIR/x"
+    [ -z "$output" ]
+}
+
+@test "fetch_pr_cached refreshes after TTL expiry" {
+    mock_cmd gh 'echo "{\"number\":1,\"title\":\"old\"}"'
+    fetch_pr_cached "$MOCK_DIR/x" >/dev/null
+    # Backdate the cache file
+    local key
+    key=$(printf '%s' "$MOCK_DIR/x" | sha1sum | awk '{print $1}')
+    touch -d '2 minutes ago' "$CLAUDE_ATTENTION_PR_CACHE_DIR/$key.json"
+    mock_cmd gh 'echo "{\"number\":2,\"title\":\"new\"}"'
+    run fetch_pr_cached "$MOCK_DIR/x"
+    [ "$output" = '{"number":2,"title":"new"}' ]
+}

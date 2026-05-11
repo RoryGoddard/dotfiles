@@ -67,3 +67,27 @@ resolve_repo_branch() {
     branch=$(git -C "$cwd" rev-parse --abbrev-ref HEAD 2>/dev/null) || return 0
     printf '%s|%s\n' "$(basename "$toplevel")" "$branch"
 }
+
+fetch_pr_cached() {
+    local cwd="$1"
+    mkdir -p "$CLAUDE_ATTENTION_PR_CACHE_DIR"
+    local key cache
+    key=$(printf '%s' "$cwd" | sha1sum | awk '{print $1}')
+    cache="$CLAUDE_ATTENTION_PR_CACHE_DIR/$key.json"
+
+    if [[ -f "$cache" ]]; then
+        local age
+        age=$(( $(date +%s) - $(stat -c %Y "$cache") ))
+        if (( age < CLAUDE_ATTENTION_PR_TTL )); then
+            cat "$cache"
+            return 0
+        fi
+    fi
+
+    local out
+    out=$(cd "$cwd" 2>/dev/null; gh pr view --json number,title 2>/dev/null) || out=""
+    if [[ -n "$out" ]]; then
+        printf '%s' "$out" > "$cache"
+        printf '%s\n' "$out"
+    fi
+}
