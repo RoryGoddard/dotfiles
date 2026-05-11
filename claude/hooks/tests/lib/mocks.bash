@@ -1,12 +1,11 @@
 # Sourced by every bats test. Sets up a tempdir on PATH containing mock
-# binaries that read scripted responses from $MOCK_DIR/responses/.
+# binaries that log invocations to $MOCK_LOG.
 
 setup_mocks() {
     export MOCK_DIR="$(mktemp -d)"
     export MOCK_BIN="$MOCK_DIR/bin"
-    export MOCK_RESP="$MOCK_DIR/responses"
     export MOCK_LOG="$MOCK_DIR/log"
-    mkdir -p "$MOCK_BIN" "$MOCK_RESP"
+    mkdir -p "$MOCK_BIN"
     : > "$MOCK_LOG"
 
     # State dir override so tests don't touch real ~/.cache
