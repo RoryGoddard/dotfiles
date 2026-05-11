@@ -75,3 +75,18 @@ fake_proc() {
     run find_kitty_address "work"
     [ -z "$output" ]
 }
+
+@test "resolve_repo_branch returns repo|branch in a git checkout" {
+    local repo="$MOCK_DIR/myapp"
+    git init -q "$repo"
+    git -C "$repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+    git -C "$repo" checkout -q -b feature/auth
+    run resolve_repo_branch "$repo"
+    [ "$output" = "myapp|feature/auth" ]
+}
+
+@test "resolve_repo_branch returns empty when not a git repo" {
+    mkdir -p "$MOCK_DIR/notagit"
+    run resolve_repo_branch "$MOCK_DIR/notagit"
+    [ -z "$output" ]
+}

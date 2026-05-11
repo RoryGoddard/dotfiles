@@ -58,3 +58,12 @@ find_kitty_address() {
         | jq -r --argjson pid "$first_pid" '.[] | select(.pid == $pid) | .address' \
         | head -n1
 }
+
+resolve_repo_branch() {
+    local cwd="$1"
+    local toplevel
+    toplevel=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || return 0
+    local branch
+    branch=$(git -C "$cwd" rev-parse --abbrev-ref HEAD 2>/dev/null) || return 0
+    printf '%s|%s\n' "$(basename "$toplevel")" "$branch"
+}
