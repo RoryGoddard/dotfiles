@@ -20,7 +20,16 @@ IFS='|' read -r sess win wname pane <<<"$loc"
 # Stop-only short-circuit: opt-in via env, then suppress if user is watching.
 if [[ "$event" == "stop" ]]; then
     [[ -z "${CLAUDE_NOTIFY_ON_STOP:-}" ]] && exit 0
-    # (focus check added in Task 10)
+
+    # Focus check: skip if this pane is the focused pane in the focused kitty.
+    pane_active="$(tmux display-message -p -t "$pane" -F '#{window_active}' 2>/dev/null)"
+    if [[ "$pane_active" == "1" ]]; then
+        my_kitty="$(find_kitty_address "$sess")"
+        active_addr="$(hyprctl activewindow -j 2>/dev/null | jq -r '.address // empty')"
+        if [[ -n "$my_kitty" && "$my_kitty" == "$active_addr" ]]; then
+            exit 0
+        fi
+    fi
 fi
 
 cwd="$(jq -r '.cwd // empty' <<<"$payload")"

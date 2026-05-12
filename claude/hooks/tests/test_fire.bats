@@ -28,3 +28,20 @@ teardown() { teardown_mocks; }
     [ "$(jq -r .message "$state")" = "Approve: rm -rf" ]
     [ "$(jq -r .swaync_id "$state")" = "4127" ]
 }
+
+@test "stop event without CLAUDE_NOTIFY_ON_STOP returns silently" {
+    export TMUX_PANE="%23"
+    unset CLAUDE_NOTIFY_ON_STOP
+    mock_cmd_match tmux 'display-message' 'echo "work|3|backend|%23"'
+    mock_cmd notify-send 'echo "SHOULD_NOT_BE_CALLED"'
+
+    payload='{"hook_event_name":"Stop","cwd":"/tmp/x"}'
+    run bash -c "echo '$payload' | $BATS_TEST_DIRNAME/../attention-fire.sh stop"
+    [ "$status" -eq 0 ]
+    ! grep -q SHOULD_NOT_BE_CALLED "$MOCK_LOG"
+    [ ! -f "$CLAUDE_ATTENTION_STATE_DIR/work-3-%23.json" ]
+}
+
+@test "stop event with CLAUDE_NOTIFY_ON_STOP suppresses when pane is focused" {
+    skip "Focus-suppression integration test — covered by manual smoke test 5"
+}
