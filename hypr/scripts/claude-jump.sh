@@ -5,7 +5,7 @@ set -uo pipefail
 
 : "${CLAUDE_ATTENTION_STATE_DIR:=$HOME/.cache/claude-attention}"
 
-win_id="" pane="" kitty=""
+sess_id="" win_id="" pane="" kitty=""
 
 while true; do
     shopt -s nullglob
@@ -18,9 +18,10 @@ while true; do
         | sort -n | head -n1 | cut -d' ' -f2-)"
     [[ -z "$oldest" ]] && exit 0
 
-    read -r win_id pane kitty <<<"$(jq -r \
-        '[.window_id,.pane_id,(.kitty_address // "")] | @tsv' \
+    IFS=$'\t' read -r sess_id win_id pane kitty <<<"$(jq -r \
+        '[(.session_id // "-"), .window_id, .pane_id, (.kitty_address // "")] | @tsv' \
         "$oldest" 2>/dev/null)"
+    [[ "$sess_id" == "-" ]] && sess_id=""
 
     if [[ -z "$win_id" ]] || ! tmux display-message -p -t "$win_id" '#{window_id}' >/dev/null 2>&1; then
         # Stale: window no longer exists. Remove and try next.
@@ -33,6 +34,11 @@ done
 
 if [[ -n "$kitty" ]]; then
     hyprctl dispatch focuswindow address:"$kitty" >/dev/null 2>&1 || true
+fi
+# Cross-session navigation: ensure the (now-focused) tmux client is in the
+# right session before selecting the window. Harmless if already there.
+if [[ -n "$sess_id" ]]; then
+    tmux switch-client -t "$sess_id" 2>/dev/null || true
 fi
 tmux select-window -t "$win_id" 2>/dev/null || true
 tmux select-pane -t "$pane" 2>/dev/null || true

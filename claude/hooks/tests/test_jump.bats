@@ -44,3 +44,21 @@ JSON
     ! grep -q 'hyprctl dispatch focuswindow' "$MOCK_LOG"
     grep -q 'tmux select-window -t @5' "$MOCK_LOG"
 }
+
+@test "jump switches tmux session when session_id is present (multi-session)" {
+    cat > "$CLAUDE_ATTENTION_STATE_DIR/@12-%20.json" <<'JSON'
+{"session":"Brixton","session_id":"$1","window":2,"window_id":"@12","pane_id":"%20","kitty_address":"0xKB"}
+JSON
+
+    mock_cmd hyprctl 'true'
+    mock_cmd_match tmux 'display-message' 'true'
+    mock_cmd_match tmux 'switch-client' 'true'
+    mock_cmd_match tmux 'select-window' 'true'
+    mock_cmd_match tmux 'select-pane' 'true'
+
+    run bash "$BATS_TEST_DIRNAME/../../../hypr/scripts/claude-jump.sh"
+    [ "$status" -eq 0 ]
+    grep -q 'tmux switch-client -t \$1' "$MOCK_LOG"
+    grep -q 'tmux select-window -t @12' "$MOCK_LOG"
+    grep -q 'tmux select-pane -t %20' "$MOCK_LOG"
+}
