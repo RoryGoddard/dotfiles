@@ -1,0 +1,30 @@
+load 'lib/mocks.bash'
+
+setup() { setup_mocks; }
+teardown() { teardown_mocks; }
+
+@test "notification event writes state file and fires notify-send" {
+    export TMUX_PANE="%23"
+    export PROC_ROOT="$MOCK_DIR/proc"
+    mkdir -p "$PROC_ROOT/$$"
+    printf 'Name:\tbash\nPid:\t%s\nPPid:\t1\n' "$$" > "$PROC_ROOT/$$/status"
+
+    mock_cmd_match tmux 'display-message' 'echo "work|3|backend|%23"'
+    mock_cmd_match tmux 'list-clients' 'true'   # no clients → null kitty addr
+    mock_cmd_match tmux 'set-option' 'true'
+    mock_cmd notify-send 'echo 4127'  # --print-id output
+    mock_cmd hyprctl 'echo "[]"'
+    mock_cmd gh 'exit 1'
+
+    payload='{"hook_event_name":"Notification","cwd":"/tmp/x","message":"Approve: rm -rf"}'
+    run bash -c "echo '$payload' | $BATS_TEST_DIRNAME/../attention-fire.sh notification"
+    [ "$status" -eq 0 ]
+
+    state="$CLAUDE_ATTENTION_STATE_DIR/work-3-%23.json"
+    [ -f "$state" ]
+    [ "$(jq -r .session "$state")" = "work" ]
+    [ "$(jq -r .window "$state")" = "3" ]
+    [ "$(jq -r .pane_id "$state")" = "%23" ]
+    [ "$(jq -r .message "$state")" = "Approve: rm -rf" ]
+    [ "$(jq -r .swaync_id "$state")" = "4127" ]
+}
