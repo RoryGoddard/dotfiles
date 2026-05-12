@@ -10,11 +10,11 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$DIR/_common.sh"
 
 loc="$(tmux display-message -p \
-    -F '#{session_name}|#{window_index}|#{pane_id}' 2>/dev/null)"
+    -F '#{window_id}|#{pane_id}' 2>/dev/null)"
 [[ -z "$loc" ]] && exit 0
-IFS='|' read -r sess win pane <<<"$loc"
+IFS='|' read -r win_id pane <<<"$loc"
 
-sf="$(state_file_path "$sess" "$win" "$pane")"
+sf="$(state_file_path "$win_id" "$pane")"
 [[ -f "$sf" ]] || exit 0
 
 # Dismiss swaync notification.
@@ -31,8 +31,8 @@ rm -f "$sf"
 
 # If no other panes in this window still pending, unset the tmux flag.
 shopt -s nullglob
-remaining=("$CLAUDE_ATTENTION_STATE_DIR/$sess-$win-"*.json)
+remaining=("$CLAUDE_ATTENTION_STATE_DIR/$win_id-"*.json)
 shopt -u nullglob
 if (( ${#remaining[@]} == 0 )); then
-    tmux set-option -uw -t "$sess:$win" @claude_attention 2>/dev/null || true
+    tmux set-option -uw -t "$win_id" @claude_attention 2>/dev/null || true
 fi

@@ -15,7 +15,7 @@ payload="$(cat)"
 # Resolve tmux location; bail silently if not in tmux.
 loc="$(resolve_tmux)"
 [[ -z "$loc" ]] && exit 0
-IFS='|' read -r sess win wname pane <<<"$loc"
+IFS='|' read -r sess sess_id win win_id wname pane <<<"$loc"
 
 # Stop-only short-circuit: opt-in via env, then suppress if user is watching.
 if [[ "$event" == "stop" ]]; then
@@ -44,7 +44,7 @@ if [[ -n "$rb" ]]; then IFS='|' read -r repo branch <<<"$rb"; fi
 pr_json="$(fetch_pr_cached "$cwd")"
 
 # Re-fire: read prior swaync_id if state file exists.
-sf="$(state_file_path "$sess" "$win" "$pane")"
+sf="$(state_file_path "$win_id" "$pane")"
 prior_id=""
 if [[ -f "$sf" ]]; then
     prior_id="$(jq -r '.swaync_id // empty' "$sf" 2>/dev/null || true)"
@@ -68,11 +68,15 @@ swaync_id="$(notify-send "${ns_args[@]}" "$title" "$body" 2>/dev/null || echo ""
 mkdir -p "$CLAUDE_ATTENTION_STATE_DIR"
 tmp="$(mktemp "$sf.XXXX")"
 jq -n \
-    --arg sess "$sess" --arg win "$win" --arg wname "$wname" --arg pane "$pane" \
+    --arg sess "$sess" --arg sess_id "$sess_id" \
+    --arg win "$win" --arg win_id "$win_id" \
+    --arg wname "$wname" --arg pane "$pane" \
     --arg kitty "$kitty_addr" --arg cwd "$cwd" --arg repo "$repo" --arg branch "$branch" \
     --argjson pr "${pr_json:-null}" --arg message "$message" --arg event "$event" \
     --arg swaync_id "$swaync_id" \
-    '{session:$sess, window:($win|tonumber), window_name:$wname, pane_id:$pane,
+    '{session:$sess, session_id:$sess_id,
+      window:($win|tonumber), window_id:$win_id,
+      window_name:$wname, pane_id:$pane,
       kitty_address:($kitty|select(length>0) // null), cwd:$cwd,
       repo:($repo|select(length>0) // null), branch:($branch|select(length>0) // null),
       pr:$pr, message:$message, event:$event,
@@ -81,4 +85,4 @@ jq -n \
 mv "$tmp" "$sf"
 
 # Set the tmux window flag.
-tmux set-option -w -t "$sess:$win" @claude_attention 1 2>/dev/null || true
+tmux set-option -w -t "$win_id" @claude_attention 1 2>/dev/null || true

@@ -7,14 +7,14 @@
 : "${CLAUDE_ATTENTION_PR_TTL:=60}"
 
 state_file_path() {
-    local sess="$1" win="$2" pane="$3"
-    printf '%s/%s-%s-%s.json\n' "$CLAUDE_ATTENTION_STATE_DIR" "$sess" "$win" "$pane"
+    local win_id="$1" pane_id="$2"
+    printf '%s/%s-%s.json\n' "$CLAUDE_ATTENTION_STATE_DIR" "$win_id" "$pane_id"
 }
 
 resolve_tmux() {
     [[ -z "$TMUX_PANE" ]] && return 0
     tmux display-message -p -t "$TMUX_PANE" \
-        -F '#{session_name}|#{window_index}|#{window_name}|#{pane_id}' 2>/dev/null
+        -F '#{session_name}|#{session_id}|#{window_index}|#{window_id}|#{window_name}|#{pane_id}' 2>/dev/null
 }
 
 : "${PROC_ROOT:=/proc}"
