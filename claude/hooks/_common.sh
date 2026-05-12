@@ -68,6 +68,24 @@ resolve_repo_branch() {
     printf '%s|%s\n' "$(basename "$toplevel")" "$branch"
 }
 
+# Returns 0 if the given branch is the repo's default (main/master/develop/etc).
+# Detection: `git symbolic-ref refs/remotes/origin/HEAD` for the authoritative
+# answer; falls back to a common-name list if origin/HEAD isn't set.
+is_default_branch() {
+    local cwd="$1" branch="$2"
+    [[ -z "$cwd" || -z "$branch" ]] && return 1
+    local default
+    default=$(git -C "$cwd" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null \
+        | sed 's|^refs/remotes/origin/||')
+    if [[ -z "$default" ]]; then
+        case "$branch" in
+            main|master|develop|trunk) return 0 ;;
+            *) return 1 ;;
+        esac
+    fi
+    [[ "$branch" == "$default" ]]
+}
+
 fetch_pr_cached() {
     local cwd="$1"
     mkdir -p "$CLAUDE_ATTENTION_PR_CACHE_DIR"

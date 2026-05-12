@@ -91,6 +91,38 @@ fake_proc() {
     [ -z "$output" ]
 }
 
+@test "is_default_branch detects authoritative origin/HEAD default" {
+    local repo="$MOCK_DIR/withdefault"
+    git init -q "$repo"
+    git -C "$repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+    git -C "$repo" branch -m main
+    git -C "$repo" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
+    run is_default_branch "$repo" "main"
+    [ "$status" -eq 0 ]
+    run is_default_branch "$repo" "feature/x"
+    [ "$status" -eq 1 ]
+}
+
+@test "is_default_branch falls back to common names when origin/HEAD unset" {
+    local repo="$MOCK_DIR/nodefault"
+    git init -q "$repo"
+    git -C "$repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+    # No origin/HEAD configured
+    run is_default_branch "$repo" "develop"
+    [ "$status" -eq 0 ]
+    run is_default_branch "$repo" "main"
+    [ "$status" -eq 0 ]
+    run is_default_branch "$repo" "feature/x"
+    [ "$status" -eq 1 ]
+}
+
+@test "is_default_branch returns false when cwd or branch is empty" {
+    run is_default_branch "" "main"
+    [ "$status" -eq 1 ]
+    run is_default_branch "$MOCK_DIR" ""
+    [ "$status" -eq 1 ]
+}
+
 @test "fetch_pr_cached returns gh JSON and caches it" {
     mkdir -p "$MOCK_DIR/somepath"
     mock_cmd gh 'echo "{\"number\":286,\"title\":\"Add OAuth\"}"'

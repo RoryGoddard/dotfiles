@@ -41,7 +41,13 @@ kitty_addr="$(find_kitty_address "$sess")"
 rb="$(resolve_repo_branch "$cwd")"
 repo=""; branch=""
 if [[ -n "$rb" ]]; then IFS='|' read -r repo branch <<<"$rb"; fi
-pr_json="$(fetch_pr_cached "$cwd")"
+# Only fetch PR for non-default branches — the default branch's PR (typically
+# a long-lived sync/release PR) is noise across many sessions in the same repo.
+if [[ -n "$branch" ]] && ! is_default_branch "$cwd" "$branch"; then
+    pr_json="$(fetch_pr_cached "$cwd")"
+else
+    pr_json=""
+fi
 
 # Re-fire: read prior swaync_id if state file exists.
 sf="$(state_file_path "$win_id" "$pane")"
