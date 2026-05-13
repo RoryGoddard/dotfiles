@@ -57,12 +57,14 @@ if [[ -f "$sf" ]]; then
 fi
 
 # Build notification.
+# Urgency stays "normal" for both event types — swaync ignores --expire-time
+# when urgency is critical, which would make the toast persist forever
+# (timeout-critical: 0 in swaync's defaults). The tmux dot already conveys
+# "needs attention" so the urgency level adds little.
 title="$(build_notification_title "$sess" "$win" "$wname")"
 body="$(build_notification_body "$repo" "$branch" "$pr_json" "$message")"
-urgency="critical"
-[[ "$event" == "stop" ]] && urgency="normal"
 
-ns_args=(--app-name=claude-code --urgency="$urgency" --expire-time="$CLAUDE_ATTENTION_TIMEOUT_MS" --print-id)
+ns_args=(--app-name=claude-code --urgency=normal --expire-time="$CLAUDE_ATTENTION_TIMEOUT_MS" --print-id)
 # --replace-id is libnotify >= 0.8 (Ubuntu 24.04+). If unsupported, we drop it
 # silently — worst case is a duplicate notification on rapid re-fire.
 if [[ -n "$prior_id" ]] && notify-send --help 2>&1 | grep -q -- '--replace-id'; then
