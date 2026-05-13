@@ -68,22 +68,29 @@ resolve_repo_branch() {
     printf '%s|%s\n' "$(basename "$toplevel")" "$branch"
 }
 
-# Returns 0 if the given branch is the repo's default (main/master/develop/etc).
-# Detection: `git symbolic-ref refs/remotes/origin/HEAD` for the authoritative
-# answer; falls back to a common-name list if origin/HEAD isn't set.
+# Returns 0 if the given branch is a default/integration branch.
+# Matches if EITHER:
+#   - branch == `git symbolic-ref refs/remotes/origin/HEAD` (authoritative
+#     when origin/HEAD is set and the team uses it), OR
+#   - branch is in $CLAUDE_ATTENTION_DEFAULT_BRANCHES (comma-separated;
+#     defaults to "main,master,develop,trunk").
+# The OR is intentional: many repos have a stale origin/HEAD pointing at
+# `master` while the team's actual integration branch is `develop`, or vice
+# versa. Matching either keeps both correct.
 is_default_branch() {
     local cwd="$1" branch="$2"
     [[ -z "$cwd" || -z "$branch" ]] && return 1
+
     local default
     default=$(git -C "$cwd" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null \
         | sed 's|^refs/remotes/origin/||')
-    if [[ -z "$default" ]]; then
-        case "$branch" in
-            main|master|develop|trunk) return 0 ;;
-            *) return 1 ;;
-        esac
-    fi
-    [[ "$branch" == "$default" ]]
+    [[ -n "$default" && "$branch" == "$default" ]] && return 0
+
+    local names="${CLAUDE_ATTENTION_DEFAULT_BRANCHES:-main,master,develop,trunk}"
+    case ",$names," in
+        *",$branch,"*) return 0 ;;
+    esac
+    return 1
 }
 
 fetch_pr_cached() {

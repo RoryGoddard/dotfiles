@@ -103,6 +103,21 @@ fake_proc() {
     [ "$status" -eq 1 ]
 }
 
+@test "is_default_branch matches common names alongside origin/HEAD" {
+    # Real-world case: origin/HEAD says master, team works on develop.
+    # Both should be treated as defaults.
+    local repo="$MOCK_DIR/staleheadrepo"
+    git init -q "$repo"
+    git -C "$repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+    git -C "$repo" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/master
+    run is_default_branch "$repo" "master"
+    [ "$status" -eq 0 ]
+    run is_default_branch "$repo" "develop"
+    [ "$status" -eq 0 ]
+    run is_default_branch "$repo" "feature/x"
+    [ "$status" -eq 1 ]
+}
+
 @test "is_default_branch falls back to common names when origin/HEAD unset" {
     local repo="$MOCK_DIR/nodefault"
     git init -q "$repo"
@@ -113,6 +128,20 @@ fake_proc() {
     run is_default_branch "$repo" "main"
     [ "$status" -eq 0 ]
     run is_default_branch "$repo" "feature/x"
+    [ "$status" -eq 1 ]
+}
+
+@test "is_default_branch honors CLAUDE_ATTENTION_DEFAULT_BRANCHES override" {
+    local repo="$MOCK_DIR/customrepo"
+    git init -q "$repo"
+    git -C "$repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+    export CLAUDE_ATTENTION_DEFAULT_BRANCHES="release,uat"
+    run is_default_branch "$repo" "release"
+    [ "$status" -eq 0 ]
+    run is_default_branch "$repo" "uat"
+    [ "$status" -eq 0 ]
+    # main is no longer in the list when overridden
+    run is_default_branch "$repo" "main"
     [ "$status" -eq 1 ]
 }
 
