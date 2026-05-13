@@ -74,10 +74,10 @@ resolve_repo_branch() {
 #   - branch == `git symbolic-ref refs/remotes/origin/HEAD` (authoritative
 #     when origin/HEAD is set and the team uses it), OR
 #   - branch is in $CLAUDE_ATTENTION_DEFAULT_BRANCHES (comma-separated;
-#     defaults to "main,master,develop,trunk").
-# The OR is intentional: many repos have a stale origin/HEAD pointing at
-# `master` while the team's actual integration branch is `develop`, or vice
-# versa. Matching either keeps both correct.
+#     defaults to "main,develop,trunk").
+# The OR is intentional: a repo's origin/HEAD may point at one branch while
+# the team's actual integration branch is a different one. Matching either
+# keeps both correct.
 is_default_branch() {
     local cwd="$1" branch="$2"
     [[ -z "$cwd" || -z "$branch" ]] && return 1
@@ -87,7 +87,7 @@ is_default_branch() {
         | sed 's|^refs/remotes/origin/||')
     [[ -n "$default" && "$branch" == "$default" ]] && return 0
 
-    local names="${CLAUDE_ATTENTION_DEFAULT_BRANCHES:-main,master,develop,trunk}"
+    local names="${CLAUDE_ATTENTION_DEFAULT_BRANCHES:-main,develop,trunk}"
     case ",$names," in
         *",$branch,"*) return 0 ;;
     esac

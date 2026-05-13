@@ -104,13 +104,13 @@ fake_proc() {
 }
 
 @test "is_default_branch matches common names alongside origin/HEAD" {
-    # Real-world case: origin/HEAD says master, team works on develop.
-    # Both should be treated as defaults.
-    local repo="$MOCK_DIR/staleheadrepo"
+    # Tests the OR: origin/HEAD points at a non-list branch (here:
+    # 'production') AND a list branch (develop) is also recognized.
+    local repo="$MOCK_DIR/orhead"
     git init -q "$repo"
     git -C "$repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
-    git -C "$repo" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/master
-    run is_default_branch "$repo" "master"
+    git -C "$repo" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/production
+    run is_default_branch "$repo" "production"
     [ "$status" -eq 0 ]
     run is_default_branch "$repo" "develop"
     [ "$status" -eq 0 ]
