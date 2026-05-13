@@ -5,6 +5,7 @@
 : "${CLAUDE_ATTENTION_STATE_DIR:=$HOME/.cache/claude-attention}"
 : "${CLAUDE_ATTENTION_PR_CACHE_DIR:=$HOME/.cache/claude-attention/pr-cache}"
 : "${CLAUDE_ATTENTION_PR_TTL:=60}"
+: "${CLAUDE_ATTENTION_TIMEOUT_MS:=8000}"
 
 state_file_path() {
     local win_id="$1" pane_id="$2"
