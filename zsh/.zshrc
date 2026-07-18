@@ -1,3 +1,10 @@
+# Migrated to a single systemd --user ssh-agent so systemd services (pr-reviewer,
+# herdr) share the same passphrase-unlocked keys as interactive shells. See
+# ~/.config/systemd/user/ssh-agent.service.d/override.conf,
+# ~/.config/environment.d/10-ssh-agent.conf and ~/.zshenv. keychain's per-login
+# /tmp agent was invisible to --user services, which re-prompted for the passphrase.
+# eval "$(keychain --eval --quiet id_ed25519_github_tangent id_ed25519_gitlab_work id_ed25519)"
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -153,7 +160,70 @@ fi
 bindkey -r '^S'
 
 
-export PATH="$HOME/.local/bin:$PATH"
 export PATH="$PATH:/opt/mssql-tools18/bin"
 export PATH="$PATH:$HOME/.dotnet/tools"
 
+export PATH="$HOME/.omnisharp:$PATH"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+
+alias xdg-open='handlr open'
+
+# Claude Code with rust-vanilla-sdlc orchestrator (latest installed version)
+alias sohoc='claude --append-system-prompt "$(cat "$(ls -1d ~/.claude/plugins/cache/rust-vanilla-sdlc/rust-vanilla-sdlc/*/prompts/orchestrator.md | sort -V | tail -1)")"'
+
+# To customize prompt, run `p10k configure` or edit ~/.dotfiles/zsh/.p10k.zsh.
+[[ ! -f ~/.dotfiles/zsh/.p10k.zsh ]] || source ~/.dotfiles/zsh/.p10k.zsh
+
+# === sccache (added 2026-05-06) ===
+# Shared compilation cache for rust builds across worktrees/projects.
+# Backed by ~/.cache/sccache, capped at 20G with LRU eviction.
+# Note: cargo invocations also pick this up via ~/.cargo/config.toml
+# (rustc-wrapper = "sccache") regardless of shell.
+export RUSTC_WRAPPER=sccache
+export SCCACHE_CACHE_SIZE=20G
+export SCCACHE_DIR=$HOME/.cache/sccache
+
+# === worktree hygiene (added 2026-05-06) ===
+alias pwt='prune-worktrees'
+alias pwt-go='prune-worktrees --execute'
+
+# === Nexus cargo token for Dockerised builds (added 2026-07-12) ===
+# The wellness-service integration harness (bin/integration_tests) runs cargo
+# inside a Docker container that does NOT inherit ~/.cargo/credentials.toml, so
+# it 401s fetching apron-* unless these are in the launch shell's environment.
+# Derived from the existing credential at shell start — no secret stored here;
+# self-heals if the token rotates. CARGO_REGISTRIES_NEXUS_GROUP_TOKEN is the one
+# cargo consumes (registry is named nexus-group).
+if [ -f "$HOME/.cargo/credentials.toml" ]; then
+  export CARGO_REGISTRIES_NEXUS_GROUP_TOKEN="$(awk '/^\[registries\.nexus-group\]/{f=1;next} /^\[/{f=0} f&&/^token/{sub(/^token *= *"/,"");sub(/" *$/,"");print;exit}' "$HOME/.cargo/credentials.toml")"
+  export CARGO_REGISTRIES_NEXUS_TOKEN="$CARGO_REGISTRIES_NEXUS_GROUP_TOKEN"
+fi
+
+# === Soho Wellness SDLC plugin launcher (added 2026-07-12) ===
+# Runs Claude in the client repo with the LOCAL dev plugin checkout
+# (feature/hardening-stack = hardening + Soho adaptation), the stale marketplace
+# copy disabled, and the orchestrator system prompt appended. Extra args pass
+# through, e.g.  soho-sdlc --dangerously-skip-permissions  for a hands-off run.
+soho-sdlc() {
+  local plugdir=/home/rory/sdlc-agent-kit/rust-vanilla-sdlc
+  local clientrepo=/home/rory/Tangent/soho-wellness/internal
+  local want=feature/hardening-stack
+  local br; br=$(git -C "$plugdir" branch --show-current 2>/dev/null)
+  if [[ "$br" != "$want" ]]; then
+    if [[ -z "$(git -C "$plugdir" status --porcelain 2>/dev/null)" ]]; then
+      git -C "$plugdir" switch "$want" >/dev/null 2>&1 || { echo "soho-sdlc: cannot switch plugin to $want"; return 1; }
+    else
+      echo "soho-sdlc: ⚠ plugin checkout on '$br' with local changes — loading as-is, NOT $want."
+    fi
+  fi
+  echo "soho-sdlc: plugin @ $(git -C "$plugdir" branch --show-current) ($(git -C "$plugdir" rev-parse --short HEAD 2>/dev/null)) → $clientrepo"
+  ( cd "$clientrepo" && claude \
+      --plugin-dir "$plugdir" \
+      --settings '{"enabledPlugins": {"rust-vanilla-sdlc@rust-vanilla-sdlc": false}}' \
+      --append-system-prompt-file "$plugdir/prompts/orchestrator.md" \
+      "$@" )
+}
