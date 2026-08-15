@@ -15,16 +15,12 @@ fi
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
-# Rory: Added this to prevent kitty catching and reporting the dotnet runtimes poorly formatted escape sequences during build and run processes 
-export DOTNET_NOLOGO=1
-
 # Rory: Added this to try get hyprland to load kitty
 export PATH="$HOME/.local/kitty.app/bin:$PATH"
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
-# Path to waypaper (installed on ubuntu with pipx, is in venv)
 export PATH="$HOME/.local/bin:$PATH"
 
 # Set name of the theme to load --- if set to "random", it will
@@ -160,15 +156,9 @@ fi
 bindkey -r '^S'
 
 
-export PATH="$PATH:/opt/mssql-tools18/bin"
-export PATH="$PATH:$HOME/.dotnet/tools"
-
-export PATH="$HOME/.omnisharp:$PATH"
-
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
 
 alias xdg-open='handlr open'
 
