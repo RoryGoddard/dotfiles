@@ -1,0 +1,46 @@
+onboarding = false
+[theme]
+# vesper, not catppuccin: the base theme's mantle/base slots (tab strip default,
+# selected workspace row) are NOT overridable via [theme.custom], and catppuccin's
+# are blue-violet tinted — they read purple against kitty's neutral grey. vesper's
+# are true neutrals (#1a1a1a / #101010). Everything visible is repainted below.
+name = "vesper"
+auto_switch = false
+
+# Grey is the anchor, eldritch is the accent.
+# Structural neutrals come from the VS Code Dark grey ramp that kitty's background
+# (#1e1e1e) belongs to; colour identity stays canonical eldritch. The side panel is
+# never painted, so the wallpaper shows through it regardless of panel_bg.
+#
+# Tab row: no surfaces at all. The terminal is translucent, so the ground's
+# luminance varies with the wallpaper (measured #26..#2b) and any fill placed on it
+# either reads muddy (mid-grey) or floats with no parent surface (dark). Tabs are
+# text — dim inactive, cyan pill active — and nothing competes with the wallpaper.
+# Alternative tried and rejected 2026-09-14 (VS Code idiom, dark bar + lighter pills):
+#   panel_bg = "#181818", surface0 = "#2d2d2d"   then `herdr server reload-config`
+[theme.custom]
+panel_bg = "reset"    # tab strip: transparent
+surface0 = "reset"    # inactive tab pills: none (text only)
+active_row_bg = "reset"  # selected Space/Agent row: none (text only) — same language as the tabs; needs herdr >= 0.8.2
+surface1 = "#3a3d41"  # active surface                  — kitty active_tab_background
+overlay0 = "#666666"  # dim text / separators           — kitty color8
+overlay1 = "#858585"  # dimmer-but-readable text        — VS Code line-number fg
+text     = "#ebfafa"  # eldritch fg — primary text
+subtext0 = "#858585"  # muted tier (inactive Spaces/agents, subtitles) — grey, same as inactive tabs; was eldritch blue #7081d0
+accent   = "#04d1f9"  # eldritch cyan — active tab / primary highlight
+blue     = "#04d1f9"  # eldritch cyan
+teal     = "#39ddfd"  # eldritch bright cyan
+green    = "#37f499"  # eldritch green
+mauve    = "#a48cf2"  # eldritch purple
+yellow   = "#f1fc79"  # eldritch yellow
+peach    = "#f7c67f"  # eldritch orange
+red      = "#f16c75"  # eldritch red
+
+[ui]
+show_agent_labels_on_pane_borders = false
+
+[session]
+# Resume supported AI-agent panes into their exact native conversation sessions
+# after a Herdr server restart (uses the per-pane session ref stored in session.json).
+# Avoids the ambiguous `claude --resume` picker when multiple tabs share a cwd.
+resume_agents_on_restore = true
