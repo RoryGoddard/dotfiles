@@ -199,7 +199,7 @@ fi
 # copy disabled, and the orchestrator system prompt appended. Extra args pass
 # through, e.g.  soho-sdlc --dangerously-skip-permissions  for a hands-off run.
 soho-sdlc() {
-  local plugdir=/home/rory/sdlc-agent-kit/rust-vanilla-sdlc
+  local plugdir=/home/rory/tools/sdlc-agent-kit/rust-vanilla-sdlc
   local clientrepo=/home/rory/Tangent/soho-wellness/internal
   local want=feature/hardening-stack
   local br; br=$(git -C "$plugdir" branch --show-current 2>/dev/null)
