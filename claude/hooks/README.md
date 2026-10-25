@@ -4,13 +4,17 @@ Bridges Claude Code → tmux dot + swaync notification → Hyprland keybind.
 
 ## Files
 - `_common.sh` — shared helpers (tmux/kitty/git/PR resolution, formatters)
-- `attention-fire.sh` — Notification + Stop hook entrypoint
+- `attention-fire.sh` — Notification + Stop + AskUserQuestion hook entrypoint
 - `attention-clear.sh` — tmux pane-focus-in hook target
 
 Hyprland-side: `~/.dotfiles/hypr/scripts/claude-jump.sh`.
 
 ## Wiring
-- Registered as Claude Code hooks in `~/.claude/settings.json`
+- Registered as Claude Code hooks in `~/.claude/settings.json`:
+  - `Notification` → `attention-fire.sh notification` (permission prompts, 60s idle)
+  - `Stop` → `attention-fire.sh stop` (turn finished; opt-in via `CLAUDE_NOTIFY_ON_STOP`)
+  - `PreToolUse` matcher `AskUserQuestion` → `attention-fire.sh askuserquestion`
+- Set `agentPushNotifEnabled: false` in `~/.claude/settings.json` so the hook is the single notification source (avoids double-notify on AskUserQuestion).
 - tmux: `set-hook -g pane-focus-in 'run-shell -b "~/.config/claude/hooks/attention-clear.sh"'`
 - Hyprland: `bind = $mainMod, space, exec, ~/.config/hypr/scripts/claude-jump.sh`
 

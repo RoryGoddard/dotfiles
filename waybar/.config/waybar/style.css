@@ -27,73 +27,90 @@
   border-width: 0px;
 }
 
-#custom-lock{
+#power-drawer {
   background-color: rgba(30,30,30, 0.9);
-  margin-top: 6px; /* 与屏幕顶部留出距离 */
+  margin-top: 6px;
   margin-left: 6px;
-  /*margin-bottom: 4px;*/
-  padding: 4px 2px; /* 保持内部间距 */
-  border-radius: 10px 0 0 10px;
+  margin-right: 0;
+  border-radius: 10px;
   border-width: 0px;
 }
 
-#custom-power{
-  background-color: rgba(30,30,30, 0.9);
-  margin-top: 6px; /* 与屏幕顶部留出距离 */
-  margin-right: 6px;
-  /*margin-bottom: 4px;*/
-  padding: 4px 2px; /* 保持内部间距 */
-  border-radius: 0 10px 10px 0;
+#custom-lock,
+#custom-reboot,
+#custom-power {
+  background-color: transparent;
+  padding: 4px 8px;
+  border-radius: 0;
+  margin: 0;
   border-width: 0px;
 }
 
-#custom-reboot{
+#custom-notification {
   background-color: rgba(30,30,30, 0.9);
-  margin-top: 6px; /* 与屏幕顶部留出距离 */
-  /*margin-bottom: 4px;*/
-  padding: 4px 2px; /* 保持内部间距 */
-  border-width: 0px;
-}
-
-#clock {
-  background-color: rgba(30,30,30, 0.9);
-  margin-top: 6px; /* 与屏幕顶部留出距离 */
-  margin-right: 6px;
-  /*margin-bottom: 4px;*/
-  padding: 4px 8px; /* 保持内部间距 */
-  border-radius: 0 10px 10px 0;
-  border-width: 0px;
-}
-
-#network{
-  background-color: rgba(30,30,30, 0.9);
-  margin-top: 6px; /* 与屏幕顶部留出距离 */
+  margin-top: 6px;
   margin-left: 6px;
-  /*margin-bottom: 4px;*/
-  padding: 4px 8px; /* 保持内部间距 */
-  border-radius: 10px 0 0 10px;
+  margin-right: 6px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 10px;
   border-width: 0px;
 }
 
-#bluetooth,
-#backlight,
+/* Stats group pill — provides the background for all stat modules */
+#stats {
+  background-color: rgba(30,30,30, 0.9);
+  margin-top: 6px;
+  margin-left: 6px;
+  margin-right: 6px;
+  border-radius: 10px;
+  border-width: 0px;
+}
+
+/* Individual stat modules — transparent within the group pill */
+#network,
+#custom-vpn,
 #battery,
+#bluetooth,
 #pulseaudio,
 #backlight,
 #custom-temperature,
+#disk,
 #memory,
-#cpu{
-  background-color: rgba(30,30,30, 0.9);
-  margin-top: 6px; /* 与屏幕顶部留出距离 */
-  /*margin-bottom: 4px;*/
-  padding: 4px 8px; /* 保持内部间距 */
+#cpu,
+#clock {
+  background-color: transparent;
+  padding: 4px 8px;
+  border-radius: 0;
+  margin: 0;
   border-width: 0px;
+}
+
+#custom-vpn {
+  font-size: 16px;
+}
+
+/* VPN active = pink */
+#custom-vpn.on {
+  color: #FF1493;
+}
+
+/* VPN inactive = orange */
+#custom-vpn.off {
+  color: #FFA500;
 }
 
 #custpm-temperature.critical,
 #pulseaudio.muted {
   color: #FF0000;
   padding-top: 0;
+}
+
+/* SSD usage thresholds */
+#disk.warning {
+  color: #FFD700;
+}
+#disk.critical {
+  color: #FF4040;
 }
 
 /* 鼠标悬停变亮一点 */
@@ -104,15 +121,19 @@
 #battery:hover,
 #pulseaudio:hover,
 #custom-temperature:hover,
+#disk:hover,
 #memory:hover,
 #cpu:hover,
 #clock:hover,
+#custom-vpn:hover,
 #custom-lock:hover,
 #custom-reboot:hover,
 #custom-power:hover,
+#custom-notification:hover,
 /*#workspaces:hover,*/
 #window:hover {
   background-color: #11111b;
+  border-radius: 10px;
 }
 
 /* 工作区激活状态高亮 */
@@ -136,5 +157,3 @@
 #window {
   font-weight: 500;
 }
-
-

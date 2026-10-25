@@ -47,3 +47,49 @@ teardown() { teardown_mocks; }
 @test "stop event with CLAUDE_NOTIFY_ON_STOP suppresses when pane is focused" {
     skip "Focus-suppression integration test — covered by manual smoke test 5"
 }
+
+@test "askuserquestion event extracts question from tool_input and writes state file" {
+    export TMUX_PANE="%23"
+    export PROC_ROOT="$MOCK_DIR/proc"
+    mkdir -p "$PROC_ROOT/$$"
+    printf 'Name:\tbash\nPid:\t%s\nPPid:\t1\n' "$$" > "$PROC_ROOT/$$/status"
+
+    mock_cmd_match tmux 'display-message' 'echo "work|\$0|3|@5|backend|%23"'
+    mock_cmd_match tmux 'list-clients' 'true'
+    mock_cmd_match tmux 'set-option' 'true'
+    mock_cmd notify-send 'echo 9001'
+    mock_cmd hyprctl 'echo "[]"'
+    mock_cmd gh 'exit 1'
+
+    payload='{"hook_event_name":"PreToolUse","tool_name":"AskUserQuestion","cwd":"/tmp/x","tool_input":{"questions":[{"question":"Which path do you prefer?","header":"Path","options":[{"label":"A","description":"a"},{"label":"B","description":"b"}],"multiSelect":false}]}}'
+    run bash -c "echo '$payload' | $BATS_TEST_DIRNAME/../attention-fire.sh askuserquestion"
+    [ "$status" -eq 0 ]
+
+    state="$CLAUDE_ATTENTION_STATE_DIR/@5-%23.json"
+    [ -f "$state" ]
+    [ "$(jq -r .message "$state")" = "Which path do you prefer?" ]
+    [ "$(jq -r .event "$state")" = "askuserquestion" ]
+    [ "$(jq -r .swaync_id "$state")" = "9001" ]
+}
+
+@test "askuserquestion event with missing tool_input falls back to generic message" {
+    export TMUX_PANE="%23"
+    export PROC_ROOT="$MOCK_DIR/proc"
+    mkdir -p "$PROC_ROOT/$$"
+    printf 'Name:\tbash\nPid:\t%s\nPPid:\t1\n' "$$" > "$PROC_ROOT/$$/status"
+
+    mock_cmd_match tmux 'display-message' 'echo "work|\$0|3|@5|backend|%23"'
+    mock_cmd_match tmux 'list-clients' 'true'
+    mock_cmd_match tmux 'set-option' 'true'
+    mock_cmd notify-send 'echo 9002'
+    mock_cmd hyprctl 'echo "[]"'
+    mock_cmd gh 'exit 1'
+
+    payload='{"hook_event_name":"PreToolUse","tool_name":"AskUserQuestion","cwd":"/tmp/x"}'
+    run bash -c "echo '$payload' | $BATS_TEST_DIRNAME/../attention-fire.sh askuserquestion"
+    [ "$status" -eq 0 ]
+
+    state="$CLAUDE_ATTENTION_STATE_DIR/@5-%23.json"
+    [ -f "$state" ]
+    [ "$(jq -r .message "$state")" = "Claude is asking a question" ]
+}

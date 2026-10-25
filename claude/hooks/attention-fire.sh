@@ -33,8 +33,18 @@ if [[ "$event" == "stop" ]]; then
 fi
 
 cwd="$(jq -r '.cwd // empty' <<<"$payload")"
-message="$(jq -r '.message // ""' <<<"$payload")"
-[[ "$event" == "stop" && -z "$message" ]] && message="Claude finished"
+case "$event" in
+    askuserquestion)
+        # PreToolUse:AskUserQuestion payload — extract first question text.
+        # No top-level .message field; fall back to a generic string if absent.
+        message="$(jq -r '.tool_input.questions[0].question // ""' <<<"$payload")"
+        [[ -z "$message" ]] && message="Claude is asking a question"
+        ;;
+    *)
+        message="$(jq -r '.message // ""' <<<"$payload")"
+        [[ "$event" == "stop" && -z "$message" ]] && message="Claude finished"
+        ;;
+esac
 
 # Build context.
 kitty_addr="$(find_kitty_address "$sess")"
