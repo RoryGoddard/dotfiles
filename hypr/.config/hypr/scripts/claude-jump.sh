@@ -1,1 +1,0 @@
-/home/rory/.dotfiles/hypr/scripts/claude-jump.sh
